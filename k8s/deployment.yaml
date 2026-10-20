@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-inference
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-inference
+  template:
+    metadata:
+      labels:
+        app: vllm-inference
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      initContainers:
+        - name: model-downloader
+          image: model-downloader:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: vllm-config
+          env:
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vllm-secrets
+                  key: HF_TOKEN
+          volumeMounts:
+            - name: model-volume
+              mountPath: /models
+      containers:
+        - name: vllm-server
+          image: vllm-cpu-custom:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: vllm-config
+          env:
+            - name: VLLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vllm-secrets
+                  key: VLLM_API_KEY
+            - name: VLLM_TARGET_DEVICE
+              value: "cpu"
+          args:
+            - "$(MODEL_DIR)"
+            - "--served-model-name=$(MODEL_ID)"
+            - "--dtype=$(DTYPE)"
+            - "--max-model-len=$(MAX_MODEL_LEN)"
+            - "--port=$(PORT)"
+            - "--enforce-eager"
+          volumeMounts:
+            - name: model-volume
+              mountPath: /models
+            - name: dshm
+              mountPath: /dev/shm
+          resources:
+            requests:
+              memory: "5Gi"
+              cpu: "2"
+            limits:
+              memory: "8Gi"
+              cpu: "6"
+      volumes:
+        - name: model-volume
+          persistentVolumeClaim:
+            claimName: vllm-model-cache-pvc
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 1Gi

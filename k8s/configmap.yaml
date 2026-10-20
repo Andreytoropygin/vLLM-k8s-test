@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vllm-config
+data:
+  MODEL_ID: "Qwen/Qwen2.5-1.5B-Instruct"
+  MODEL_DIR: "/models/Qwen2.5-1.5B-Instruct"
+  DTYPE: "bfloat16"
+  MAX_MODEL_LEN: "1024"
+  PORT: "8000"
+  VLLM_CPU_KVCACHE_SPACE: "1"
+  OMP_NUM_THREADS: "2"
+  VLLM_CPU_OMP_THREADS_BIND: "0-1"
