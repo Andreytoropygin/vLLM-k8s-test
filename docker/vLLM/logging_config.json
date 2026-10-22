@@ -23,7 +23,12 @@
   "loggers": {
     "vllm": {
       "handlers": ["console"],
-      "level": "WARNING",
+      "level": "INFO",
+      "propagate": false
+    },
+    "uvicorn.error": {
+      "handlers": ["console"],
+      "level": "INFO",
       "propagate": false
     },
     "uvicorn.access": {

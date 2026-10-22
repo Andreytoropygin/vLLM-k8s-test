@@ -4,8 +4,13 @@ resources:
 - configmap.yaml
 - deployment.yaml
 - pvc.yaml
-- secret.yaml
 - service.yaml
+secretGenerator:
+  - name: vllm-secrets
+    envs:
+      - .env.secrets
+generatorOptions:
+  disableNameSuffixHash: true
 labels:
 - includeSelectors: true
   pairs:

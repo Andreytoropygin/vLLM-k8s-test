@@ -12,6 +12,7 @@ spec:
       labels:
         app: vllm-inference
     spec:
+      enableServiceLinks: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -50,13 +51,15 @@ spec:
                   key: VLLM_API_KEY
             - name: VLLM_TARGET_DEVICE
               value: "cpu"
+            - name: TORCH_CPP_LOG_LEVEL
+              value: "ERROR"
           args:
             - "$(MODEL_DIR)"
             - "--served-model-name=$(MODEL_ID)"
             - "--dtype=$(DTYPE)"
             - "--max-model-len=$(MAX_MODEL_LEN)"
             - "--port=$(PORT)"
-            - "--enforce-eager"
+            - "--generation-config=vllm"
           volumeMounts:
             - name: model-volume
               mountPath: /models
